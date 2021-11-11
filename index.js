@@ -26,13 +26,14 @@ async function run() {
             const result = await productsCollection.find({}).limit(6).toArray();
             res.json(result);
         });
-        // GET API (get all services)
+
+        // GET API (get all products)
         app.get('/allServices', async (req, res) => {
             const result = await productsCollection.find({}).toArray();
             res.json(result);
         });
 
-        // GET API (reviews)
+        // GET API (get all reviews)
         app.get('/reviews', async (req, res) => {
             const result = await reviewsCollection.find({}).toArray();
             res.json(result);
