@@ -21,10 +21,14 @@ async function run() {
         await client.connect();
 
         const database = client.db('watchStore');
+
+        // collections
         const productsCollection = database.collection('products');
         const reviewsCollection = database.collection('reviews');
-        const purchasedCollection = database.collection('purchasedProducts')
+        const purchasedCollection = database.collection('purchasedProducts');
+        const usersCollection = database.collection('users');
 
+        // ....................................................//
 
         // GET API (get exact 6 products for homepage)
         app.get('/products', async (req, res) => {
@@ -45,7 +49,7 @@ async function run() {
             const product = await productsCollection.findOne(query);
             res.json(product);
 
-        })
+        });
 
         // GET API (get all reviews)
         app.get('/reviews', async (req, res) => {
@@ -54,13 +58,74 @@ async function run() {
         });
 
 
+        // GET API (checking admin)
+        app.get('/users/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const user = await usersCollection.findOne(query);
+            let isAdmin = false;
+            if (user?.role === 'admin') {
+                isAdmin = true;
+            }
+
+            res.json({ admin: isAdmin });
+        });
+
+        // GET API (get users purchased products)
+        app.get('/purchased', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const products = await purchasedCollection.find(query).toArray();
+            res.json(products)
+        });
+
+
+        // ....................................................//
+
         // POST API (set purhased products to database)
         app.post('/purchased', async (req, res) => {
             const purchased = req.body;
 
             const result = await purchasedCollection.insertOne(purchased);
             res.json(result);
-        })
+        });
+
+        // POST API (set user to database)
+        app.post('/users', async (req, res) => {
+            const user = req.body;
+            const result = await usersCollection.insertOne(user);
+            res.json(result);
+        });
+
+        // POST API (post review to database)
+        app.post('/postReview', async (req, res) => {
+            const review = req.body;
+            const result = await reviewsCollection.insertOne(review);
+            res.json(result);
+        });
+
+        // ....................................................//
+
+        // PUT API (make an admin)
+        app.put('/users/admin', async (req, res) => {
+            const user = req.body;
+            const filter = { email: user.email };
+            const update = { $set: { role: 'admin' } };
+            const result = await usersCollection.updateOne(filter, update);
+            res.json(result);
+        });
+
+        // ....................................................//
+
+        //  DELETE API (user deleting his/her purchase product before confirm)
+        app.delete('/purchaseDelete/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await purchasedCollection.deleteOne(query);
+            res.json(result)
+
+        });
+
 
 
 
