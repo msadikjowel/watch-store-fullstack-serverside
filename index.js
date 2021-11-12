@@ -79,6 +79,18 @@ async function run() {
             res.json(products)
         });
 
+        // GET API (get all purchased products for admin)
+        app.get('/allPurchased', async (req, res) => {
+            const result = await purchasedCollection.find({}).toArray();
+            res.json(result)
+        });
+
+        // GET API (get all products to admin dashboard)
+        app.get('/allProducts', async (req, res) => {
+            const result = await productsCollection.find({}).toArray();
+            res.json(result);
+        });
+
 
         // ....................................................//
 
@@ -104,6 +116,13 @@ async function run() {
             res.json(result);
         });
 
+        // POST API (add product (admin only))
+        app.post('/addProduct', async (req, res) => {
+            const addProduct = req.body;
+            const result = await productsCollection.insertOne(addProduct);
+            res.json(result);
+        });
+
         // ....................................................//
 
         // PUT API (make an admin)
@@ -115,6 +134,21 @@ async function run() {
             res.json(result);
         });
 
+        // PUT API (update status)
+        app.put('/updateStatus/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true };
+            const updateStatus = {
+                $set: {
+                    status: 'Approved'
+                },
+            };
+
+            const result = await purchasedCollection.updateOne(filter, updateStatus, options);
+            res.send(result);
+        });
+
         // ....................................................//
 
         //  DELETE API (user deleting his/her purchase product before confirm)
@@ -122,6 +156,15 @@ async function run() {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
             const result = await purchasedCollection.deleteOne(query);
+            res.json(result)
+
+        });
+
+        // DELETE API (admin deleting products)
+        app.delete('/productDelete/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await productsCollection.deleteOne(query);
             res.json(result)
 
         });
